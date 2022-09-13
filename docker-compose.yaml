@@ -1,0 +1,83 @@
+version: "3"
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: portfolio-api
+    container_name: portfolio-api
+    restart: always
+    tty: true
+    volumes:
+      - ./:/api
+    ports:
+      - "8001:8000"
+    depends_on:
+      - db
+
+    networks:
+      - api-network
+
+  db:
+    image: postgres:13-alpine
+    container_name: portfolio-db
+    restart: always
+    tty: true
+    ports:
+      - "8436:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: portfolio-docker
+    volumes:
+      - ~/Documents/NNG-repos/database/portfolio/data:/var/lib/postgresql/data
+    networks:
+      - api-network
+
+  # rabbitmq:
+  #   image: rabbitmq:3.8.9-alpine
+  #   container_name: rabbitmq
+  #   restart: always
+  #   tty: true
+  #   networks:
+  #     - api-network
+
+  # celery-worker:
+  #   command: watchmedo auto-restart -- celery -A vdp worker -l INFO
+  #   container_name: celery-worker
+  #   restart: always
+  #   depends_on:
+  #     - api
+  #     - db
+  #     - rabbitmq
+  #   image: vdp-api
+  #   volumes:
+  #     - ./:/api
+  #   networks:
+  #     - api-network
+
+  # celery-schedule:
+  #   command: watchmedo auto-restart -- celery -A vdp beat --loglevel=INFO --pidfile=/tmp/celeryd.pid
+  #   container_name: celery-schedule
+  #   restart: always
+  #   depends_on:
+  #     - api
+  #     - db
+  #     - rabbitmq
+  #     - celery-worker
+  #   image: vdp-api
+  #   volumes:
+  #     - ./:/api
+  #   networks:
+  #     - api-network
+
+#Docker Networks
+networks:
+  api-network:
+    driver: bridge
+
+#Volumes
+# volumes:
+#   portfolio-db:
+#     driver: local
